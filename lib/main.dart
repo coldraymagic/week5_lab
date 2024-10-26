@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:floor/floor.dart';
+
 // week8
 void main() {
   runApp(const MyApp());
@@ -12,12 +14,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Week5 Lab',
+      title: 'Week8 Lab',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Week5 Lab, Xinwei Wang'),
+      home: const MyHomePage(title: 'Week8 Lab, Xinwei Wang'),
     );
   }
 }
