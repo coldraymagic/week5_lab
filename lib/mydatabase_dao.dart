@@ -3,12 +3,15 @@ import "mydatabase.dart";
 
 @dao
 abstract class MyDatabaseDao {
-  @Query('SELECT * FROM Person')
-  Future<List<MyDatabase>> findAllPersons();
+  @Query('SELECT * FROM MyDatabase')
+  Future<List<MyDatabase>> findAllData();
 
-  @Query('SELECT * FROM Person WHERE id = :id')
-  Stream<MyDatabase?> findPersonById(int id);
+  @Query('SELECT * FROM MyDatabase WHERE id = :id')
+  Stream<MyDatabase?> findDataById(int id);
 
   @insert
-  Future<void> insertPerson(MyDatabase myDatabase);
+  Future<void> insertData(MyDatabase myDatabase);
+
+  @Query('DELETE FROM MyDatabase WHERE id = :id')
+  Future<void> deleteDataById(int id);
 }
