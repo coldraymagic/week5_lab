@@ -4,9 +4,7 @@ import 'package:floor/floor.dart';
 class MyDatabase {
   @primaryKey
   final int id;
-
-  final String itemName;
   final String itemValue;
 
-  MyDatabase(this.id, this.itemName, this.itemValue);
+  MyDatabase(this.id,  this.itemValue);
 }

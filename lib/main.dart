@@ -1,10 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:floor/floor.dart';
 
+import 'database.dart';
+import 'mydatabase.dart';
+
 // week8
-void main() {
+Future<void> main() async {
+  // final _database = await $FloorAppDatabase.databaseBuilder("wxw.db").build();
+  //
+  // print(_database);
   runApp(const MyApp());
 }
+
+
+class DatabaseService {
+  // Singleton
+  static final DatabaseService _instance = DatabaseService._internal();
+  // return instance
+  factory DatabaseService() {
+    return _instance;
+  }
+  // make the constructor private
+  DatabaseService._internal();
+  AppDatabase? _database;
+  Future<AppDatabase?> connect(String dbName) async {
+    _database = await $FloorAppDatabase.databaseBuilder("{$dbName}").build();
+    return _database;
+  }
+  AppDatabase? getDatabase(){
+    return _database;
+  }
+}
+
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -26,7 +55,6 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
   final String title;
 
   @override
@@ -35,12 +63,23 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late TextEditingController textFieldController;
-  List<String> words = [];
+  List<MyDatabase> data = [];
+  late final DatabaseService dbService;
+  AppDatabase? db;
 
   @override //same as in java
   void initState() {
     super.initState();
     textFieldController = TextEditingController();
+    dbService = DatabaseService();
+    dbService.connect("wxw.db").then((result){
+      result!.myDatabaseDao.findAllData().then((result){
+        data=(result.isEmpty)?[]:result;
+        setState(() {});
+      });
+    });
+
+
   }
 
   @override
@@ -70,7 +109,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          words.add(textFieldController.text);
+                          var current=MyDatabase(DateTime.now().millisecondsSinceEpoch, textFieldController.text);
+                          data.add(current);
+                          dbService.getDatabase()!.myDatabaseDao.insertData(current);
+                          // words.add(textFieldController.text);
                           textFieldController.clear();
                         });
                       },
@@ -94,19 +136,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
             SizedBox(height: 10),
 
-            if (words.isEmpty)
+            if (data.isEmpty)
               Text("There are no items in the list")
             else
               Expanded(
                   child: ListView.builder(
-                      itemCount: words.length,
+                      itemCount: data.length,
                       itemBuilder: (context, r) {
                         return GestureDetector(
                           child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
                                 Text("item $r:"),
-                                Text("${words[r]}"),
+                                Text("${data[r].itemValue}"),
                               ]),
                           //
                           onLongPress: () {
@@ -119,9 +161,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                 actions: <Widget>[
                                   OutlinedButton(
                                       onPressed: () {
+                                        dbService.getDatabase()!.myDatabaseDao.deleteDataById(data[r].id);
                                         setState(() {
-                                          words.removeAt(r);
+                                          data.removeAt(r);
                                         });
+
+
                                         Navigator.pop(context);
                                       },
                                       child: Text("Yes")),

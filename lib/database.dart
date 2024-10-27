@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
-
+import 'package:sqflite_common_ffi_web/setup.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'mydatabase_dao.dart';
 import 'mydatabase.dart';
 
