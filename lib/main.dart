@@ -65,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late TextEditingController textFieldController;
   List<MyDatabase> data = [];
   late final DatabaseService dbService;
-  AppDatabase? db;
+
 
   @override //same as in java
   void initState() {
@@ -78,8 +78,6 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {});
       });
     });
-
-
   }
 
   @override
