@@ -40,12 +40,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Week8 Lab',
+      title: 'Week9 Lab',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Week8 Lab, Xinwei Wang'),
+      home: const MyHomePage(title: 'Week9 Lab, Xinwei Wang'),
     );
   }
 }
