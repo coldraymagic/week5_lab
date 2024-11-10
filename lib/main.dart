@@ -65,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late TextEditingController textFieldController;
   List<MyDatabase> data = [];
   late final DatabaseService dbService;
-
+  MyDatabase? selectedItem = null;
 
   @override //same as in java
   void initState() {
@@ -96,94 +96,139 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
 
       ),
-      body: Center(
-          child: Padding(
-        padding: EdgeInsets.all(10.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Row(mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          var current=MyDatabase(DateTime.now().millisecondsSinceEpoch, textFieldController.text);
-                          data.add(current);
-                          dbService.getDatabase()!.myDatabaseDao.insertData(current);
-                          // words.add(textFieldController.text);
-                          textFieldController.clear();
-                        });
-                      },
-                      child: Text("Add")
-                  ),
+      body: reactiveLayout(),
+    );
+  }
+  Widget reactiveLayout() {
+    var size = MediaQuery
+        .of(context)
+        .size;
+    var height = size.height;
+    var width = size.width;
 
-                  SizedBox(width: 10),
+    if ((width > height) && (width > 720)) {
+      return Row(children: [
+        Expanded(flex:1,child:toDoList()),
+        Expanded(flex:2,child: DetailsPage())
+      ]);
+    } else {
+      if(selectedItem==null){
+        return toDoList();
+      }
+      else {
+        return DetailsPage();
+      }
+    }
+  }
 
-                  Flexible(
-                    child: TextField(
-                      controller: textFieldController,
-                      decoration: InputDecoration(
-                        hintText: "Enter a search term",
-                        labelText: "Enter a search term",
-                        border: OutlineInputBorder(),
+  Widget DetailsPage(){
+    return Column(children:[
+        if (selectedItem==null)
+          Text("Please select something from the list")
+      else
+          Text("You select:" + selectedItem!.itemValue),
+    // ElevatedButton(child:Text("ok"),onPressed: (){
+    //
+    // }
+    // )
+    ]);
+  }
+
+  Widget toDoList(){
+    return Center(
+        child: Padding(
+          padding: EdgeInsets.all(10.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Row(mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            var current=MyDatabase(DateTime.now().millisecondsSinceEpoch, textFieldController.text);
+                            data.add(current);
+                            dbService.getDatabase()!.myDatabaseDao.insertData(current);
+                            // words.add(textFieldController.text);
+                            textFieldController.clear();
+                          });
+                        },
+                        child: Text("Add")
+                    ),
+
+                    SizedBox(width: 10),
+
+                    Flexible(
+                      child: TextField(
+                        controller: textFieldController,
+                        decoration: InputDecoration(
+                          hintText: "Enter a search term",
+                          labelText: "Enter a search term",
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
-                  ),
-                ]
-            ),
-
-            SizedBox(height: 10),
-
-            if (data.isEmpty)
-              Text("There are no items in the list")
-            else
-              Expanded(
-                  child: ListView.builder(
-                      itemCount: data.length,
-                      itemBuilder: (context, r) {
-                        return GestureDetector(
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Text("item $r:"),
-                                Text("${data[r].itemValue}"),
-                              ]),
-                          //
-                          onLongPress: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) => AlertDialog(
-                                title: const Text('Warning'),
-                                content: const Text(
-                                    'The selected item will be remove. (Yes/No)'),
-                                actions: <Widget>[
-                                  OutlinedButton(
-                                      onPressed: () {
-                                        dbService.getDatabase()!.myDatabaseDao.deleteDataById(data[r].id);
-                                        setState(() {
-                                          data.removeAt(r);
-                                        });
-
-
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text("Yes")),
-                                  OutlinedButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text("No"))
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      }
-                  )
+                  ]
               ),
-          ],
-        ),
-      )),
-    );
+
+              SizedBox(height: 10),
+
+              if (data.isEmpty)
+                Text("There are no items in the list")
+              else
+                Expanded(
+                    child: ListView.builder(
+                        itemCount: data.length,
+                        itemBuilder: (context, r) {
+                          return GestureDetector(
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  Text("item $r:"),
+                                  Text("${data[r].itemValue}"),
+                                ]),
+                            //
+                            onTap:(){
+                              setState(() {
+                                selectedItem=data[r];
+                              });
+
+                            },
+
+                            onLongPress: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) => AlertDialog(
+                                  title: const Text('Warning'),
+                                  content: const Text(
+                                      'The selected item will be remove. (Yes/No)'),
+                                  actions: <Widget>[
+                                    OutlinedButton(
+                                        onPressed: () {
+                                          dbService.getDatabase()!.myDatabaseDao.deleteDataById(data[r].id);
+                                          setState(() {
+                                            data.removeAt(r);
+                                          });
+
+
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text("Yes")),
+                                    OutlinedButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text("No"))
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        }
+                    )
+                ),
+            ],
+          ),
+        ));
   }
 }
