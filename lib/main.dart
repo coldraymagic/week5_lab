@@ -12,7 +12,6 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-
 class DatabaseService {
   // Singleton
   static final DatabaseService _instance = DatabaseService._internal();
@@ -27,13 +26,11 @@ class DatabaseService {
     _database = await $FloorAppDatabase.databaseBuilder("{$dbName}").build();
     return _database;
   }
-  AppDatabase? getDatabase(){
+
+  AppDatabase? getDatabase() {
     return _database;
   }
 }
-
-
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -72,9 +69,9 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     textFieldController = TextEditingController();
     dbService = DatabaseService();
-    dbService.connect("wxw.db").then((result){
-      result!.myDatabaseDao.findAllData().then((result){
-        data=(result.isEmpty)?[]:result;
+    dbService.connect("wxw.db").then((result) {
+      result!.myDatabaseDao.findAllData().then((result) {
+        data = (result.isEmpty) ? [] : result;
         setState(() {});
       });
     });
@@ -89,146 +86,175 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
-
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
-
       ),
       body: reactiveLayout(),
     );
   }
+
   Widget reactiveLayout() {
-    var size = MediaQuery
-        .of(context)
-        .size;
+    var size = MediaQuery.of(context).size;
     var height = size.height;
     var width = size.width;
 
     if ((width > height) && (width > 720)) {
-      return Row(children: [
-        Expanded(flex:1,child:toDoList()),
-        Expanded(flex:2,child: DetailsPage())
-      ]);
-    } else {
-      if(selectedItem==null){
+      return
+          Row(children: [
+            Expanded(flex: 1, child: Container(child: toDoList()) ),
+            Expanded(flex: 2, child: Container(child: DetailsPage())),
+          ]) ;
+
+
+     }
+    else {
+      if (selectedItem == null) {
         return toDoList();
-      }
-      else {
+      } else {
         return DetailsPage();
       }
     }
   }
 
-  Widget DetailsPage(){
-    return Column(children:[
-        if (selectedItem==null)
-          Text("Please select something from the list")
+  Widget DetailsPage() {
+    return Column(children: [
+      if (selectedItem == null)
+        Text("Please select something from the list", style: TextStyle(fontSize: 24))
       else
-          Text("You select:" + selectedItem!.itemValue),
-    // ElevatedButton(child:Text("ok"),onPressed: (){
-    //
-    // }
-    // )
+        Column(
+
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+          Text("You select: ${selectedItem!.itemValue}",
+              style: TextStyle(fontSize: 20)),
+            SizedBox(height: 30,),
+            ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                      title: const Text('Warning'),
+                      content: const Text(
+                          'The selected item will be remove. (Yes/No)'),
+                      actions: <Widget>[
+                        OutlinedButton(
+                            onPressed: () {
+                              dbService.getDatabase()!.myDatabaseDao.deleteDataById(selectedItem!.id);
+                              setState(() {
+                                data.remove(selectedItem);
+                                selectedItem=null;
+                              });
+
+
+                              Navigator.pop(context);
+                            },
+                            child: Text("Yes")),
+                        OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text("No"))
+                      ],
+                    ),
+                  );
+                },
+                child: Text("Delete")),
+    ],)
+      // ElevatedButton(child:Text("ok"),onPressed: (){
+      //
+      // }
+      // )
     ]);
   }
 
-  Widget toDoList(){
+  Widget toDoList() {
     return Center(
         child: Padding(
-          padding: EdgeInsets.all(10.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Row(mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    ElevatedButton(
-                        onPressed: () {
+      padding: EdgeInsets.all(10.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+            ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    var current = MyDatabase(
+                        DateTime.now().millisecondsSinceEpoch,
+                        textFieldController.text);
+                    data.add(current);
+                    dbService.getDatabase()!.myDatabaseDao.insertData(current);
+                    // words.add(textFieldController.text);
+                    textFieldController.clear();
+                  });
+                },
+                child: Text("Add")),
+            SizedBox(width: 10),
+            Flexible(
+              child: TextField(
+                controller: textFieldController,
+                decoration: InputDecoration(
+                  hintText: "Enter a search term",
+                  labelText: "Enter a search term",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+          ]),
+          SizedBox(height: 10),
+          if (data.isEmpty)
+            Text("There are no items in the list")
+          else
+            Expanded(
+                child: ListView.builder(
+                    itemCount: data.length,
+                    itemBuilder: (context, r) {
+                      return GestureDetector(
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Text("item $r:"),
+                              Text("${data[r].itemValue}"),
+                            ]),
+                        //
+                        onTap: () {
                           setState(() {
-                            var current=MyDatabase(DateTime.now().millisecondsSinceEpoch, textFieldController.text);
-                            data.add(current);
-                            dbService.getDatabase()!.myDatabaseDao.insertData(current);
-                            // words.add(textFieldController.text);
-                            textFieldController.clear();
+                            selectedItem = data[r];
                           });
                         },
-                        child: Text("Add")
-                    ),
 
-                    SizedBox(width: 10),
-
-                    Flexible(
-                      child: TextField(
-                        controller: textFieldController,
-                        decoration: InputDecoration(
-                          hintText: "Enter a search term",
-                          labelText: "Enter a search term",
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                  ]
-              ),
-
-              SizedBox(height: 10),
-
-              if (data.isEmpty)
-                Text("There are no items in the list")
-              else
-                Expanded(
-                    child: ListView.builder(
-                        itemCount: data.length,
-                        itemBuilder: (context, r) {
-                          return GestureDetector(
-                            child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  Text("item $r:"),
-                                  Text("${data[r].itemValue}"),
-                                ]),
-                            //
-                            onTap:(){
-                              setState(() {
-                                selectedItem=data[r];
-                              });
-
-                            },
-
-                            onLongPress: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) => AlertDialog(
-                                  title: const Text('Warning'),
-                                  content: const Text(
-                                      'The selected item will be remove. (Yes/No)'),
-                                  actions: <Widget>[
-                                    OutlinedButton(
-                                        onPressed: () {
-                                          dbService.getDatabase()!.myDatabaseDao.deleteDataById(data[r].id);
-                                          setState(() {
-                                            data.removeAt(r);
-                                          });
-
-
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text("Yes")),
-                                    OutlinedButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text("No"))
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        }
-                    )
-                ),
-            ],
-          ),
-        ));
+                        onLongPress: () {
+                          // showDialog(
+                          //   context: context,
+                          //   builder: (BuildContext context) => AlertDialog(
+                          //     title: const Text('Warning'),
+                          //     content: const Text(
+                          //         'The selected item will be remove. (Yes/No)'),
+                          //     actions: <Widget>[
+                          //       OutlinedButton(
+                          //           onPressed: () {
+                          //             dbService.getDatabase()!.myDatabaseDao.deleteDataById(data[r].id);
+                          //             setState(() {
+                          //               data.removeAt(r);
+                          //             });
+                          //
+                          //
+                          //             Navigator.pop(context);
+                          //           },
+                          //           child: Text("Yes")),
+                          //       OutlinedButton(
+                          //           onPressed: () {
+                          //             Navigator.pop(context);
+                          //           },
+                          //           child: Text("No"))
+                          //     ],
+                          //   ),
+                          // );
+                        },
+                      );
+                    })),
+        ],
+      ),
+    ));
   }
 }
